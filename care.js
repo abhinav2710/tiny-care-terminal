@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+console.info(__dirname);
 var config = require(__dirname + '/config.js');
 var twitterbot = require(__dirname + '/twitterbot.js');
 
@@ -29,15 +30,17 @@ screen.key(['r', 'C-r'], function(ch, key) {
 var grid = new contrib.grid({rows: 12, cols: 12, screen: screen});
 
 // grid.set(row, col, rowSpan, colSpan, obj, opts)
-var weatherBox = grid.set(0, 8, 2, 4, blessed.box, makeScrollBox(' 🌤 '));
-var todayBox = grid.set(0, 0, 6, 6, blessed.box, makeScrollBox(' 📝  Today '));
-var weekBox = grid.set(6, 0, 6, 6, blessed.box, makeScrollBox(' 📝  Week '));
-var commits = grid.set(0, 6, 6, 2, contrib.bar, {label: 'Commits', barWidth: 5, xOffset: 4, maxHeight: 10});
+var timeBox = grid.set(0, 11, 1, 1, blessed.box, makeScrollBox(' 🕐 '));
+var dateBox = gir.set(0, 10, 1, 1, blessed.box, makeScrollBox(' 📅 '));
+var weatherBox = grid.set(1, 6, 2, 4, blessed.box, makeScrollBox(' 🌤 '));
+var todayBox = grid.set(1, 0, 12, 6, blessed.box, makeScrollBox(' 📝  Today '));
+// var weekBox = grid.set(6, 0, 6, 6, blessed.box, makeScrollBox(' 📝  Week '));
+// var commits = grid.set(0, 6, 6, 2, contrib.bar, {label: 'Commits', barWidth: 5, xOffset: 4, maxHeight: 10});
 var parrotBox = grid.set(6, 6, 6, 6, blessed.box, makeScrollBox(''));
 
 var tweetBoxes = {}
-tweetBoxes[config.twitter[1]] = grid.set(2, 8, 2, 4, blessed.box, makeBox(' 💖 '));
-tweetBoxes[config.twitter[2]] = grid.set(4, 8, 2, 4, blessed.box, makeBox(' 💬 '));
+tweetBoxes[config.twitter[1]] = grid.set(3, 6, 2, 4, blessed.box, makeBox(' 💖 '));
+tweetBoxes[config.twitter[2]] = grid.set(5, 6, 2, 4, blessed.box, makeBox(' 💬 '));
 
 tick();
 setInterval(tick, 1000 * 60 * config.updateInterval);
@@ -103,22 +106,6 @@ function doTheTweets() {
 function doTheCodes() {
   var todayCommits = 0;
   var weekCommits = 0;
-
-  var today = spawn('sh ' + __dirname + '/standup-helper.sh', [config.repos], {shell:true});
-  todayBox.content = '';
-  today.stdout.on('data', data => {
-    todayCommits = getCommits(`${data}`, todayBox);
-    updateCommitsGraph(todayCommits, weekCommits);
-    screen.render();
-  });
-
-  var week = spawn('sh ' + __dirname + '/standup-helper.sh', ['-d 7', config.repos], {shell:true});
-  weekBox.content = '';
-  week.stdout.on('data', data => {
-    weekCommits = getCommits(`${data}`, weekBox);
-    updateCommitsGraph(todayCommits, weekCommits);
-    screen.render();
-  });
 }
 
 function makeBox(label) {
@@ -139,7 +126,6 @@ function makeBox(label) {
 
 function makeScrollBox(label) {
   var options = makeBox(label);
-  options.scrollable = true;
   options.scrollbar = { ch:' ' };
   options.style.scrollbar = { bg: 'green', fg: 'white' }
   options.keys = true;
@@ -147,17 +133,6 @@ function makeScrollBox(label) {
   options.alwaysScroll = true;
   options.mouse = true;
   return options;
-}
-
-var commitRegex = /(.......) (- .*)/g;
-function getCommits(data, box) {
-  var content = colorizeLog(data);
-  box.content += content;
-  return (box.content.match(commitRegex) || []).length;
-}
-
-function updateCommitsGraph(today, week) {
-  commits.setData({titles: ['today', 'week'], data: [today, week]})
 }
 
 function colorizeLog(text) {
@@ -178,3 +153,24 @@ function colorizeLog(text) {
   }
   return lines.join('\n');
 }
+
+
+function updateDateTime() {
+    var date = new Date();
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+    var year = date.getFullYear();
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+    timeBox.content = hour + ":" + min + ":" + sec;
+    dateBox.content = month + "/" + day;
+    screen.render();
+}
+
+

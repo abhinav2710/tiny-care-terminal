@@ -6,9 +6,9 @@
   "author": "Monica Dinculescu <noms@google.com>",
   "license": "MIT",
   "bin": {
-    "tiny-care-terminal": "care.js"
+    "my-tiny-care-terminal": "care.js"
   },
-  "repository": "https://github.com/notwaldorf/tiny-care-terminal.git",
+  "repository": "git@github.com:abhinav2710/tiny-care-terminal.git",
   "dependencies": {
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.7.5",
