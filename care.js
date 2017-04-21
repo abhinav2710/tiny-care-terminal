@@ -31,19 +31,20 @@ var grid = new contrib.grid({rows: 12, cols: 12, screen: screen});
 
 // grid.set(row, col, rowSpan, colSpan, obj, opts)
 var timeBox = grid.set(0, 11, 1, 1, blessed.box, makeScrollBox(' 🕐 '));
-var dateBox = gir.set(0, 10, 1, 1, blessed.box, makeScrollBox(' 📅 '));
-var weatherBox = grid.set(1, 6, 2, 4, blessed.box, makeScrollBox(' 🌤 '));
-var todayBox = grid.set(1, 0, 12, 6, blessed.box, makeScrollBox(' 📝  Today '));
+var dateBox = grid.set(0, 10, 1, 1, blessed.box, makeScrollBox(' 📅 '));
+var weatherBox = grid.set(1, 6, 2, 6, blessed.box, makeScrollBox(' 🌤 '));
+var todoBox = grid.set(1, 0, 11, 6, blessed.box, makeScrollBox(' 📝  Todo '));
 // var weekBox = grid.set(6, 0, 6, 6, blessed.box, makeScrollBox(' 📝  Week '));
 // var commits = grid.set(0, 6, 6, 2, contrib.bar, {label: 'Commits', barWidth: 5, xOffset: 4, maxHeight: 10});
-var parrotBox = grid.set(6, 6, 6, 6, blessed.box, makeScrollBox(''));
+var parrotBox = grid.set(7, 6, 5, 6, blessed.box, makeScrollBox(''));
 
 var tweetBoxes = {}
-tweetBoxes[config.twitter[1]] = grid.set(3, 6, 2, 4, blessed.box, makeBox(' 💖 '));
-tweetBoxes[config.twitter[2]] = grid.set(5, 6, 2, 4, blessed.box, makeBox(' 💬 '));
+tweetBoxes[config.twitter[1]] = grid.set(3, 6, 2, 6, blessed.box, makeBox(' 💖 '));
+tweetBoxes[config.twitter[2]] = grid.set(5, 6, 2, 6, blessed.box, makeBox(' 💬 '));
 
 tick();
 setInterval(tick, 1000 * 60 * config.updateInterval);
+setInterval(updateDateTime, 1000);
 
 function tick() {
   doTheWeather();
@@ -104,8 +105,16 @@ function doTheTweets() {
 }
 
 function doTheCodes() {
-  var todayCommits = 0;
-  var weekCommits = 0;
+    var taskOut = spawn('task', [], {});
+    //console.info(taskOut.stdout);
+
+    taskOut.stdout.on('data', data => {
+      // output will be here in chunks
+      //console.info(colorizeLog(`${data}`));
+      todoBox.content = '';
+      todoBox.content += colorizeLog(`${data}`);
+      screen.render();
+    });
 }
 
 function makeBox(label) {
